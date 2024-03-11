@@ -1,0 +1,63 @@
+using UnityEngine;
+using System.IO.Ports;
+
+public class DuoSkinController : MonoBehaviour
+{
+    SerialPort serialPort;
+    public float moveSpeed = 5f;
+    public float rotationSpeed = 100f;
+    public Transform playerCamera;
+    public GameObject bulletPrefab;
+    public Transform bulletSpawnPoint;
+
+    void Start()
+    {
+        serialPort = new SerialPort("COM3", 9600); // Adjust port name and baud rate
+        serialPort.Open();
+    }
+
+    void Update()
+    {
+        if (serialPort.IsOpen)
+        {
+            try
+            {
+                string data = serialPort.ReadLine();
+                // Process data here (e.g., parse touch location, pressure, etc.)
+                // Adjust player movement and aiming based on processed data
+                float movement = float.Parse(data);
+                transform.Translate(Vector3.forward * movement * moveSpeed * Time.deltaTime);
+
+                // Rotate the player character based on camera direction
+                float rotation = Input.GetAxis("Horizontal") * rotationSpeed * Time.deltaTime;
+                transform.Rotate(0, rotation, 0);
+
+                // Aim the player character's camera based on processed data
+                float cameraRotation = /* Calculate camera rotation based on processed data */;
+                playerCamera.Rotate(Vector3.up, cameraRotation);
+                
+                // Detect if the middle area is tapped to shoot
+                if (/* Check if the middle area is tapped*/)
+                {
+                    Shoot();
+                }
+            }
+            catch (System.Exception)
+            {
+                // Handle exceptions
+            }
+        }
+    }
+
+    void Shoot()
+    {
+        // Spawn a bullet at the bullet spawn point
+        Instantiate(bulletPrefab, bulletSpawnPoint.position, bulletSpawnPoint.rotation);
+        // Add logic here to shoot the bullet in the direction the player is aiming
+    }
+
+    void OnApplicationQuit()
+    {
+        serialPort.Close();
+    }
+}
